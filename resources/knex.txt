@@ -1,0 +1,4 @@
+knex migrate:make Datastructure
+knex migrate:latest
+knex seed:make {name}
+knex seed:run
