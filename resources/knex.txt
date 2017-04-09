@@ -1,4 +1,7 @@
-knex migrate:make Datastructure
+knex migrate:make Datastructure --knexfile newfilename
 knex migrate:latest
 knex seed:make {name}
 knex seed:run
+
+knex migrate:make Datastructure --knexfile ./src/DataAccess/knexfile.js
+

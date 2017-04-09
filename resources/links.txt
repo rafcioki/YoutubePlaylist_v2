@@ -2,3 +2,4 @@ https://scotch.io/tutorials/making-a-restful-api-with-hapi-js
 https://scotch.io/tutorials/the-anatomy-of-a-json-web-token
 https://scotch.io/tutorials/the-ins-and-outs-of-token-based-authentication
 http://matt-harrison.com/using-hapi-js-with-socket-io/
+https://www.abeautifulsite.net/hashing-passwords-with-nodejs-and-bcrypt
