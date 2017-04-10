@@ -12,11 +12,26 @@ server.route({
     path: '/sessions',
     method: 'GET',
     handler: (request, reply) => {
-        const { sessionId } = request.params;
         const getOperation = Knex('session')
         .where({
         })
         .select('guid').then(results => {
+            reply({
+                dataCount: results.length,
+                data: results
+            });
+        });
+    }
+});
+
+server.route({
+    path: '/session/{id}',
+    method: 'GET',
+    handler: (request, reply) => {
+        const { id } = request.params;
+        const getOperation = Knex('session')
+        .where({guid: id})
+        .select('friendlyName').then(results => {
             reply({
                 dataCount: results.length,
                 data: results
