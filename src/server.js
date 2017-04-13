@@ -1,6 +1,9 @@
 import Hapi from 'hapi';
 import Knex from './DataAccess/knex';
 import SecretKeys from '../config/secretKeys';
+import GUID from 'node-uuid';
+import bcrypt from 'bcrypt';
+import csprng from 'csprng';
 
 const server = new Hapi.Server();
 
@@ -21,6 +24,49 @@ server.route({
                 data: results
             });
         });
+    }
+});
+
+server.route({
+    path:'/session',
+    method: 'PUT',
+    handler: (request, reply) => {
+        const { name, password } = request.payload;
+
+        if (!name) {
+            reply('You have to provide a name.');
+        }
+
+        Knex('session')
+            .where({ name: name })
+            .select('name')
+            .then(results => {
+                if (results && results.length > 0) {
+                    reply('Provided name already exists.');
+                } else {
+                    const numberOfRoundsWhenGeneratingSalt = 10;
+                    const salt = csprng(160, 36);
+                    bcrypt.hash(salt + password, 
+                    numberOfRoundsWhenGeneratingSalt, 
+                    function(err, hash) {
+                        const session = {
+                            name, 
+                            passwordHash: hash,
+                            guid: GUID.v4(),
+                            passwordSalt: salt
+                        };
+        
+                        Knex('session')
+                            .insert(session)
+                            .then(function(createdSessionId) {
+                                reply(createdSessionId);
+                            })
+                            .catch(error => {
+                                reply('Error occured.');
+                            });
+                        });
+                }
+            });
     }
 });
 
