@@ -66,18 +66,43 @@ const routes = [
             }
         },
         handler: (request, reply) => {
-            const { videoUrl } = request.payload;
-            const test = request.auth.credentials;
+            const { videoUrl, sessionId } = request.payload;
+            const credentials = request.auth.credentials;
 
-            reply('fuck off');
+            if (sessionId === credentials.sessionId) {
+                const newVideo = { 
+                    url: videoUrl,
+                    fkSession: 'test2'
+                 };
+
+                Knex('video')
+                    .insert(newVideo)
+                    .then(createdVideoId => {
+                        reply(createdVideoId);
+                    })
+                    .catch(error => {
+                        reply('An error occurred');
+                    });
+            } else {
+                reply("Unathorized");
+            }
         }
     },
 
     {
-        path: '/session/videos',
+        path: '/session/videos/{id}',
         method: 'GET',
         handler: (request, reply) => {
-            // todo
+            const { id } = request.params;
+
+            Knex('video')
+                .where({fkSession: id})
+                .select('url')
+                .then(results => {
+                    reply({
+                        data: results
+                    });
+                });
         }
     },
 
@@ -85,15 +110,14 @@ const routes = [
         path: '/session',
         method: 'GET',
         handler: (request, reply) => {
-            const getOperation = Knex('session')
-            .where({
-            })
-            .select('guid').then(results => {
-                reply({
-                    dataCount: results.length,
-                    data: results
+            Knex('session')
+                .where({})
+                .select('guid').then(results => {
+                    reply({
+                        dataCount: results.length,
+                        data: results
+                    });
                 });
-            });
         }
     },
 
@@ -102,13 +126,14 @@ const routes = [
         method: 'GET',
         handler: (request, reply) => {
             const { id } = request.params;
-            const getOperation = Knex('session')
-            .where({guid: id})
-            .select('friendlyName').then(results => {
-                reply({
-                    dataCount: results.length,
-                    data: results
-                });
+            
+            Knex('session')
+                .where({guid: id})
+                .select('name').then(results => {
+                    reply({
+                        dataCount: results.length,
+                        data: results
+                    });
             });
         }
     },
