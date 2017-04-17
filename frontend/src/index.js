@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import YoutubingApp from './YoutubingApp';
+import NewSession from './Components/NewSession'
 import './index.css';
 
 ReactDOM.render(
-  <App />,
+  <YoutubingApp />,
   document.getElementById('root')
 );
