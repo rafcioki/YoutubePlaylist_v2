@@ -10,7 +10,10 @@ import hapiJwt from 'hapi-auth-jwt';
 const server = new Hapi.Server();
 
 server.connection({
-    port: 8080
+    port: 8080,
+    routes: {
+        cors: true
+    }
 });
 
 const routes = [
@@ -72,7 +75,7 @@ const routes = [
             if (sessionId === credentials.sessionId) {
                 const newVideo = { 
                     url: videoUrl,
-                    fkSession: 'test2'
+                    fkSession: sessionId
                  };
 
                 Knex('video')
