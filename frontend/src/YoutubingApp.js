@@ -8,9 +8,8 @@ class YoutubingApp extends Component {
     return (
       <Router>
         <div>
-          {/*<h1>Welcome to YoutubingApp!</h1>          */}
           <Route exact path="/" component={NewSession} />
-          <Route path="/session/:sessionId" component={Session} />
+          <Route path="/session/:sessionName" component={Session} />
         </div>
       </Router>
     );
