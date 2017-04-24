@@ -4,4 +4,4 @@ knex seed:make {name}
 knex seed:run
 
 knex migrate:make Datastructure --knexfile ./src/DataAccess/knexfile.js
-
+knex migrate:latest --knexfile ./src/DataAccess/knexfile.js

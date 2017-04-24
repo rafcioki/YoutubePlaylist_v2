@@ -6,8 +6,8 @@ export default require('knex')({
     connection: {
         host: dbSettings.host,
 
-        user: credentials.databaseAzureCredentials.username,
-        password: credentials.databaseAzureCredentials.password,
+        user: credentials.localDbCredentials.username,
+        password: credentials.localDbCredentials.password,
 
         database: dbSettings.databaseName,
         charset: 'utf8'
