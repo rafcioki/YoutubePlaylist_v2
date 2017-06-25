@@ -1,11 +1,8 @@
 import Hapi from 'hapi';
-import Knex from './DataAccess/knex';
 import SecretKeys from '../config/secretKeys';
-import GUID from 'node-uuid';
-import bcrypt from 'bcrypt';
-import csprng from 'csprng';
 import jwt from 'jsonwebtoken';
 import hapiJwt from 'hapi-auth-jwt';
+import routes from './ServerRoutes/routes';
 
 const server = new Hapi.Server();
 
@@ -16,174 +13,156 @@ server.connection({
     }
 });
 
-const routes = [
-    {
-        path: '/connectToSession',
-        method: 'POST',
-        handler: (request, reply) => {
-            const { sessionName, sessionPassword, username } = request.payload;
+// const routes = [
+//     {
+//         path: '/session/video',
+//         method: 'POST',
+//         config: {
+//             auth: {
+//                 strategy: 'token'
+//             }
+//         },
+//         handler: (request, reply) => {
+//             const { videoUrl, sessionId } = request.payload;
+//             const credentials = request.auth.credentials;
 
-            Knex('session')
-            .where({
-                name: sessionName
-            })
-            .select('passwordSalt', 'passwordHash', 'guid')
-            .then(results => {
-                if (!results || results.length === 0) {
-                    reply("Such session does not exists.");
-                } else {
-                    let saltedUserPassword = results[0].passwordSalt + sessionPassword;
-                    let passwordHash = results[0].passwordHash;
-                    bcrypt.compare(saltedUserPassword,
-                    passwordHash,
-                    function (error, res) {
-                        if (res) {
-                            const sessionId = results[0].guid;
-                            const token = jwt.sign({
-                                sessionId,
-                                username
-                            },
-                            SecretKeys.jwtKey, {
-                                algorithm: 'HS256',
-                                expiresIn: '1h'
-                            });
+//             if (sessionId === credentials.sessionId) {
+//                 const newVideo = { 
+//                     url: videoUrl,
+//                     fkSession: sessionId
+//                  };
 
-                            reply({
-                                token
-                            });
-                        } else {
-                            reply("Authorization failed.");
-                        }
-                    });
-                }
-            });
-        }
-    },
+//                 Knex('video')
+//                     .insert(newVideo)
+//                     .then(createdVideoId => {
+//                         reply(createdVideoId);
+//                     })
+//                     .catch(error => {
+//                         reply('An error occurred');
+//                     });
+//             } else {
+//                 reply("Unathorized");
+//             }
+//         }
+//     },
 
-    {
-        path: '/session/video',
-        method: 'PUT',
-        config: {
-            auth: {
-                strategy: 'token'
-            }
-        },
-        handler: (request, reply) => {
-            const { videoUrl, sessionId } = request.payload;
-            const credentials = request.auth.credentials;
+//     {
+//         path: '/session/videos/{id}',
+//         method: 'GET',
+//         handler: (request, reply) => {
+//             const { id } = request.params;
 
-            if (sessionId === credentials.sessionId) {
-                const newVideo = { 
-                    url: videoUrl,
-                    fkSession: sessionId
-                 };
+//             Knex('video')
+//                 .where({fkSession: id})
+//                 .select('url')
+//                 .then(results => {
+//                     reply({
+//                         data: results
+//                     });
+//                 });
+//         }
+//     },
 
-                Knex('video')
-                    .insert(newVideo)
-                    .then(createdVideoId => {
-                        reply(createdVideoId);
-                    })
-                    .catch(error => {
-                        reply('An error occurred');
-                    });
-            } else {
-                reply("Unathorized");
-            }
-        }
-    },
+//     {
+//         path: '/session',
+//         method: 'GET',
+//         handler: (request, reply) => {
+//             Knex('session')
+//                 .where({})
+//                 .select('guid').then(results => {
+//                     reply({
+//                         dataCount: results.length,
+//                         data: results
+//                     });
+//                 });
+//         }
+//     },
 
-    {
-        path: '/session/videos/{id}',
-        method: 'GET',
-        handler: (request, reply) => {
-            const { id } = request.params;
-
-            Knex('video')
-                .where({fkSession: id})
-                .select('url')
-                .then(results => {
-                    reply({
-                        data: results
-                    });
-                });
-        }
-    },
-
-    {
-        path: '/session',
-        method: 'GET',
-        handler: (request, reply) => {
-            Knex('session')
-                .where({})
-                .select('guid').then(results => {
-                    reply({
-                        dataCount: results.length,
-                        data: results
-                    });
-                });
-        }
-    },
-
-    {
-        path: '/session/{id}',
-        method: 'GET',
-        handler: (request, reply) => {
-            const { id } = request.params;
+//     {
+//         path: '/session/id/{id}',
+//         method: 'GET',
+//         handler: (request, reply) => {
+//             const { id } = request.params;
             
-            Knex('session')
-                .where({guid: id})
-                .select('name').then(results => {
-                    reply({
-                        dataCount: results.length,
-                        data: results
-                    });
-            });
-        }
-    },
+//             Knex('session')
+//                 .where({guid: id})
+//                 .select('name').then(results => {
+//                     reply({
+//                         dataCount: results.length,
+//                         data: results
+//                     });
+//             });
+//         }
+//     },
 
-    {
-        path:'/session',
-        method: 'PUT',
-        handler: (request, reply) => {
-            const { name, password } = request.payload;
+//     {
+//         path: '/session/name/{name}',
+//         method: 'GET',
+//         handler: (request, reply) => {
+//             const { name } = request.params;
 
-            if (!name) {
-                reply('You have to provide a name.');
-            }
+//             Knex('session')
+//                 .where({name: name})
+//                 .select('name').then(results => {
+//                     reply({
+//                         dataCount: results.length,
+//                         data: results
+//                     });
+//                 });
+//         }
+//     },
 
-            Knex('session')
-                .where({ name: name })
-                .select('name')
-                .then(results => {
-                    if (results && results.length > 0) {
-                        reply('Provided name already exists.');
-                    } else {
-                        const numberOfRoundsWhenGeneratingSalt = 10;
-                        const salt = csprng(160, 36);
-                        bcrypt.hash(salt + password, 
-                        numberOfRoundsWhenGeneratingSalt, 
-                        function(err, hash) {
-                            const session = {
-                                name, 
-                                passwordHash: hash,
-                                guid: GUID.v4(),
-                                passwordSalt: salt
-                            };
+//     {
+//         path:'/session',
+//         method: 'POST',
+//         handler: (request, reply) => {
+//             const { identifier, password } = request.payload;
+
+//             if (!identifier) {
+//                 identifier = shortid.generate();
+//             }
+
+//             Knex('session')
+//                 .where({ identifier: identifier })
+//                 .select('identifier')
+//                 .then(results => {
+//                     if (results && results.length > 0) {
+//                         reply('Provided id already exists.');
+//                     } else {
+//                         let salt = null, hash = null;
+
+//                         if (password === null) {
+
+//                         } else {
+
+//                         }
+
+//                         const numberOfRoundsWhenGeneratingSalt = 10;
+//                         const salt = csprng(160, 36);
+//                         bcrypt.hash(salt + password, 
+//                         numberOfRoundsWhenGeneratingSalt, 
+//                         function(err, hash) {
+//                             const session = {
+//                                 name, 
+//                                 passwordHash: hash,
+//                                 guid: GUID.v4(),
+//                                 passwordSalt: salt
+//                             };
             
-                            Knex('session')
-                                .insert(session)
-                                .then(function(createdSessionId) {
-                                    reply(createdSessionId);
-                                })
-                                .catch(error => {
-                                    reply('Error occured.');
-                                });
-                            });
-                    }
-                });
-        }
-    }
-];
+//                             Knex('session')
+//                                 .insert(session)
+//                                 .then(function(createdSessionId) {
+//                                     reply(createdSessionId);
+//                                 })
+//                                 .catch(error => {
+//                                     reply('Error occured.');
+//                                 });
+//                             });
+//                     }
+//                 });
+//         }
+//     }
+// ];
 
 server.register(hapiJwt, err => {
     server.auth.strategy('token', 'jwt', {
